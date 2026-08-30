@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <title>W.Translator v2 Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 15px;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #d4af37;
+            padding-bottom: 10px;
+        }
+        h1 { color: #d4af37; font-size: 24px; }
+        
+        /* Mode Switcher Tabs */
+        .mode-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            background: #2d2d2d;
+            color: #888;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .tab-btn.active {
+            background: #d4af37;
+            color: #1a1a1a;
+            border-color: #d4af37;
+        }
+
+        .box {
+            background: #2d2d2d;
+            border: 1px solid #d4af37;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        label {
+            color: #d4af37;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .counter { font-size: 11px; color: #888; }
+        select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d4af37;
+            background: #1a1a1a;
+            color: #fff;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            outline: none;
+        }
+        textarea { min-height: 120px; resize: vertical; font-family: monospace, sans-serif; }
+        .input-wrapper { position: relative; }
+        .btn-clear {
+            position: absolute; right: 10px; top: 10px;
+            background: transparent; border: none; color: #888;
+            cursor: pointer; font-size: 14px; display: none;
+        }
+        .btn-clear:hover { color: #d4af37; }
+        .langs {
+            display: grid;
+            grid-template-columns: 1fr 35px 1fr;
+            gap: 10px;
+        }
+        button {
+            padding: 12px; border: none; border-radius: 6px;
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: 0.2s; width: 100%;
+        }
+        .btn-main {
+            background: linear-gradient(135deg, #d4af37, #f4e4a6);
+            color: #1a1a1a; margin-bottom: 15px;
+        }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
+        .swap {
+            background: transparent; border: 1px solid #d4af37;
+            color: #d4af37; height: 40px; margin-top: 18px;
+        }
+        .output {
+            background: rgba(212,175,55,0.05);
+            border: 1px solid #d4af37; padding: 12px;
+            min-height: 60px; border-radius: 6px;
+            line-height: 1.6; word-break: break-word;
+            white-space: pre-wrap; font-size: 14px;
+        }
+        .empty { color: #666; font-style: italic; }
+        .btns {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 8px; margin-top: 10px;
+        }
+        .btn-small {
+            background: transparent; border: 1px solid #d4af37;
+            color: #d4af37; padding: 8px; font-size: 12px; border-radius: 4px;
+        }
+        .btn-small:hover { background: rgba(212,175,55,0.1); }
+        .msg {
+            padding: 10px; border-radius: 6px; margin-bottom: 15px;
+            font-size: 12px; border-left: 3px solid #d4af37;
+            background: rgba(212,175,55,0.15); color: #d4af37; display: none;
+        }
+        .msg.show { display: block; }
+        .msg.err { border-left-color: #f44336; background: rgba(244,67,54,0.15); color: #ff7043; }
+        .tag {
+            display: inline-block; padding: 4px 10px; margin: 3px;
+            background: #d4af37; color: #111; border-radius: 12px;
+            font-size: 12px; font-weight: bold;
+        }
+        .analysis-card {
+            background: #222; border-left: 3px solid #d4af37;
+            padding: 10px; margin-top: 10px; font-size: 13px; border-radius: 4px;
+        }
+        .history-list { max-height: 200px; overflow-y: auto; margin-top: 10px; font-size: 12px; }
+        .history-item { border-bottom: 1px solid #444; padding: 8px 0; }
+        .history-item:last-child { border-bottom: none; }
+        .history-item .meta { color: #d4af37; font-size: 10px; margin-bottom: 2px; }
+    </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>🌐 W.Translator</h1>
+        <p style="font-size: 11px; color: #888;">Smart Text & Code Inspection Tool</p>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="mode-tabs">
+        <button class="tab-btn active" id="tab-text">📝 Text Translate</button>
+        <button class="tab-btn" id="tab-code">💻 Code Inspector</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <!-- Language Selector Box -->
+    <div class="box" id="lang-box">
+        <div class="langs">
+            <div>
+                <label>From</label>
+                <select id="src">
+                    <option value="autodetect">Auto Detect</option>
+                    <option value="en">English</option>
+                    <option value="th">Thai</option>
+                    <option value="zh">Chinese</option>
+                    <option value="ja">Japanese</option>
+                    <option value="ko">Korean</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="es">Spanish</option>
+                    <option value="vi">Vietnamese</option>
+                    <option value="id">Indonesian</option>
+                </select>
+            </div>
+            <button class="swap" id="swap" title="Swap Languages">⇄</button>
+            <div>
+                <label>To</label>
+                <select id="tgt">
+                    <option value="th">Thai</option>
+                    <option value="en" selected>English</option>
+                    <option value="zh">Chinese</option>
+                    <option value="ja">Japanese</option>
+                    <option value="ko">Korean</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="es">Spanish</option>
+                    <option value="vi">Vietnamese</option>
+                    <option value="id">Indonesian</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="box">
+        <div class="box-header">
+            <label id="input-label">📝 Text Input</label>
+            <span class="counter" id="counter">0 chars | 0 words</span>
+        </div>
+        <div class="input-wrapper">
+            <textarea id="txt" placeholder="Type or paste text here..."></textarea>
+            <button class="btn-clear" id="clear" title="Clear text">✕</button>
+        </div>
+        <button class="btn-small" id="speak-src" style="width: auto; padding: 4px 8px;">🔊 Listen Source</button>
+    </div>
+
+    <button class="btn-main" id="btn">✨ Translate Text</button>
+
+    <div class="box">
+        <label id="output-label">Result</label>
+        <div class="output empty" id="out">Waiting for process...</div>
+        <div id="analysis-container"></div>
+        <div id="vocab" style="margin-top:10px;"></div>
+
+        <div class="btns">
+            <button class="btn-small" id="copy">📋 Copy</button>
+            <button class="btn-small" id="speak-tgt">🔊 Listen Result</button>
+            <button class="btn-small" id="toggle-history">📜 History</button>
+        </div>
+    </div>
+
+    <!-- History Container -->
+    <div class="box" id="history-box" style="display: none;">
+        <div class="box-header">
+            <label>📜 History</label>
+            <button class="btn-small" id="clear-history" style="width: auto; padding: 2px 8px; color: #f44336; border-color: #f44336;">Clear</button>
+        </div>
+        <div class="history-list" id="history-list"></div>
+    </div>
+
+    <script>
+        const src = document.getElementById('src');
+        const tgt = document.getElementById('tgt');
+        const txt = document.getElementById('txt');
+        const out = document.getElementById('out');
+        const btn = document.getElementById('btn');
+        const msg = document.getElementById('msg');
+        const counter = document.getElementById('counter');
+        const btnClear = document.getElementById('clear');
+        const historyBox = document.getElementById('history-box');
+        const historyList = document.getElementById('history-list');
+        const analysisContainer = document.getElementById('analysis-container');
+        
+        const tabText = document.getElementById('tab-text');
+        const tabCode = document.getElementById('tab-code');
+        const langBox = document.getElementById('lang-box');
+        const inputLabel = document.getElementById('input-label');
+
+        let currentMode = 'text'; // 'text' or 'code'
+        let debounceTimer;
+
+        const voiceMap = {
+            en: 'en-US', th: 'th-TH', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR',
+            fr: 'fr-FR', de: 'de-DE', es: 'es-ES', vi: 'vi-VN', id: 'id-ID'
+        };
+
+        // Switch Mode Tabs
+        tabText.onclick = () => switchMode('text');
+        tabCode.onclick = () => switchMode('code');
+
+        function switchMode(mode) {
+            currentMode = mode;
+            if (mode === 'text') {
+                tabText.classList.add('active');
+                tabCode.classList.remove('active');
+                langBox.style.display = 'block';
+                inputLabel.textContent = '📝 Text Input';
+                txt.placeholder = 'Type or paste text here...';
+                btn.textContent = '✨ Translate Text';
+            } else {
+                tabCode.classList.add('active');
+                tabText.classList.remove('active');
+                langBox.style.display = 'none';
+                inputLabel.textContent = '💻 Source Code Input';
+                txt.placeholder = 'Paste source code here (e.g. JavaScript, Python, C++, PHP, HTML)...';
+                btn.textContent = '🔍 Inspect Code & Security';
+            }
+            btnClear.click();
+        }
+
+        function show(text, error = false) {
+            msg.textContent = text;
+            msg.className = 'msg show' + (error ? ' err' : '');
+            clearTimeout(show._t);
+            show._t = setTimeout(() => msg.classList.remove('show'), 3000);
+        }
+
+        txt.addEventListener('input', () => {
+            const val = txt.value;
+            counter.textContent = `${val.length} chars | ${val.trim() ? val.trim().split(/\s+/).length : 0} words`;
+            btnClear.style.display = val.length > 0 ? 'block' : 'none';
+
+            if (currentMode === 'text' && val.trim()) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => doProcess(true), 800);
+            }
+        });
+
+        btnClear.onclick = () => {
+            txt.value = '';
+            txt.dispatchEvent(new Event('input'));
+            out.textContent = 'Waiting for process...';
+            out.classList.add('empty');
+            document.getElementById("vocab").innerHTML = '';
+            analysisContainer.innerHTML = '';
+        };
+
+        document.getElementById('swap').onclick = () => {
+            if (src.value === 'autodetect') return;
+            [src.value, tgt.value] = [tgt.value, src.value];
+            if (txt.value.trim()) doProcess();
+        };
+
+        document.getElementById('copy').onclick = () => {
+            if (!out.classList.contains('empty')) {
+                navigator.clipboard.writeText(out.textContent);
+                show('✓ Copied to clipboard');
+            }
+        };
+
+        function playSpeech(text, langCode) {
+            if (!text || text === 'Waiting for process...') return;
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = voiceMap[langCode] || 'en-US';
+            speechSynthesis.speak(u);
+        }
+
+        document.getElementById('speak-src').onclick = () => playSpeech(txt.value, src.value);
+        document.getElementById('speak-tgt').onclick = () => playSpeech(out.textContent, tgt.value);
+
+        // Smart Vocabulary Extraction
+        function showVocabulary(text, lang) {
+            const vocabContainer = document.getElementById("vocab");
+            if (!text || !window.Intl || !Intl.Segmenter) {
+                vocabContainer.innerHTML = '';
+                return;
+            }
+            try {
+                const segmenter = new Intl.Segmenter(lang, { granularity: 'word' });
+                const words = Array.from(segmenter.segment(text))
+                    .filter(s => s.isWordLike)
+                    .map(s => s.segment.trim())
+                    .filter(s => s.length > 1);
+
+                const uniqueWords = [...new Set(words)].slice(0, 6);
+                vocabContainer.innerHTML = uniqueWords.map(w => `<span class="tag">${w}</span>`).join("");
+            } catch (e) {
+                vocabContainer.innerHTML = '';
+            }
+        }
+
+        async function doProcess(isAuto = false) {
+            const text = txt.value.trim();
+            if (!text) {
+                if (!isAuto) show('⚠️ กรุณาใส่ข้อความหรือซอร์สโค้ด', true);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ กำลังประมวลผล...';
+
+            if (currentMode === 'text') {
+                try {
+                    const sourceLang = src.value === 'autodetect' ? 'auto' : src.value;
+                    const targetLang = tgt.value;
+                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+                    
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('Network error');
+
+                    const data = await res.json();
+                    let finalResult = '';
+                    if (data && data[0]) {
+                        data[0].forEach(item => { if (item[0]) finalResult += item[0]; });
+                    }
+
+                    if (!finalResult) throw new Error('ไม่ได้รับผลแปล');
+
+                    out.textContent = finalResult;
+                    out.classList.remove('empty');
+                    analysisContainer.innerHTML = '';
+
+                    showVocabulary(finalResult, tgt.value);
+                    saveHistory(src.value, tgt.value, text, finalResult);
+                    show('✅ แปลเสร็จแล้ว');
+                } catch (e) {
+                    show('❌ ' + e.message, true);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '✨ Translate Text';
+                }
+            } else {
+                setTimeout(() => {
+                    analyzeCode(text);
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Inspect Code & Security';
+                }, 300);
+            }
+        }
+
+        function analyzeCode(code) {
+            let detectedLang = 'Unknown';
+            let errors = [];
+            let securityWarnings = [];
+            let syntaxStatus = '✅ ไวยากรณ์พื้นฐานถูกต้อง';
+
+            // 1. ตรวจจับภาษาโปรแกรมมิ่ง
+            if (/function|const|let|var|console\.log|=>/.test(code)) detectedLang = 'JavaScript / TypeScript';
+            else if (/def |import |print\(|elif /.test(code)) detectedLang = 'Python';
+            else if (/#include|<iostream>|std::/.test(code)) detectedLang = 'C / C++';
+            else if (/public class|System\.out\.println/.test(code)) detectedLang = 'Java';
+            else if (/<\?php|\$[a-zA-Z_]/.test(code)) detectedLang = 'PHP';
+            else if (/<[a-z][\s\S]*>/i.test(code)) detectedLang = 'HTML / XML';
+
+            // 2. ตรวจสอบไวยากรณ์ (Syntax & Grammar Check)
+            const openBraces = (code.match(/\{/g) || []).length;
+            const closeBraces = (code.match(/\}/g) || []).length;
+            if (openBraces !== closeBraces) {
+                errors.push(`พบวงเล็บปีกกา { } ไม่สมบูรณ์ (เปิด ${openBraces} / ปิด ${closeBraces})`);
+            }
+
+            const openParens = (code.match(/\(/g) || []).length;
+            const closeParens = (code.match(/\)/g) || []).length;
+            if (openParens !== closeParens) {
+                errors.push(`พบวงเล็บโค้ง ( ) ไม่สมบูรณ์ (เปิด ${openParens} / ปิด ${closeParens})`);
+            }
+
+            // 3. สแกนความปลอดภัย (Security Inspection)
+            if (/eval\(|exec\(|Function\(/.test(code)) {
+                securityWarnings.push('⚠️ พบการใช้ eval() / exec() ซึ่งเสี่ยงต่อ Dynamic Code Execution');
+            }
+            if (/innerHTML\s*=/i.test(code)) {
+                securityWarnings.push('⚠️ พบการใช้ innerHTML ซึ่งเสี่ยงต่อช่องโหว่ XSS (Cross-Site Scripting)');
+            }
+            if (/document\.write\(/i.test(code)) {
+                securityWarnings.push('⚠️ พบการใช้ document.write() ซึ่งเป็นคำสั่งสุ่มเสี่ยง');
+            }
+            if (/base64_decode|shell_exec|system\(|passthru\(/i.test(code)) {
+                securityWarnings.push('🚨 ตรวจพบคำสั่งเรียกใช้ระบบ/Shell ซึ่งอาจเป็นโค้ดแฝงอันตราย');
+            }
+
+            if (errors.length > 0) syntaxStatus = '❌ พบข้อผิดพลาดทางไวยากรณ์';
+
+            out.textContent = code;
+            out.classList.remove('empty');
+
+            let analysisHTML = `
+                <div class="analysis-card">
+                    <strong style="color:#d4af37;">💻 ภาษา: ${detectedLang}</strong><br>
+                    <span style="color:${errors.length > 0 ? '#ff7043' : '#4caf50'}; font-weight:bold;">${syntaxStatus}</span>
+            `;
+
+            if (errors.length > 0) {
+                analysisHTML += `<ul style="margin: 5px 0 5px 15px; color:#ff7043;">`;
+                errors.forEach(err => analysisHTML += `<li>${err}</li>`);
+                analysisHTML += `</ul>`;
+            }
+
+            if (securityWarnings.length > 0) {
+                analysisHTML += `<div style="margin-top:8px; padding:6px; background:rgba(244,67,54,0.2); border-radius:4px; border:1px solid #f44336;">`;
+                analysisHTML += `<strong style="color:#f44336;">🚨 แจ้งเตือนความปลอดภัย:</strong>`;
+                analysisHTML += `<ul style="margin: 3px 0 0 15px; color:#ff7043;">`;
+                securityWarnings.forEach(warn => analysisHTML += `<li>${warn}</li>`);
+                analysisHTML += `</ul></div>`;
+            } else {
+                analysisHTML += `<div style="margin-top:5px; color:#888; font-size:11px;">🛡️ ไม่พบคำสั่งสุ่มเสี่ยงความปลอดภัยเบื้องต้น</div>`;
+            }
+
+            analysisHTML += `</div>`;
+
+            analysisContainer.innerHTML = analysisHTML;
+            saveHistory('CodeCheck', detectedLang, code.slice(0, 30) + '...', errors.length > 0 ? 'พบข้อผิดพลาด' : 'ผ่านการตรวจ');
+            show('✅ ตรวจสอบโค้ดเรียบร้อย');
+        }
+
+    btn.onclick = () => doProcess();
+
+        txt.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                doProcess();
+            }
+        });
+
+        function saveHistory(from, to, text, result) {
+            let history = JSON.parse(localStorage.getItem("history") || "[]");
+            if (history.length > 0 && history[0].text === text && history[0].to === to) return;
+
+            history.unshift({ from, to, text, result, date: new Date().toLocaleTimeString() });
+            localStorage.setItem("history", JSON.stringify(history.slice(0, 30)));
+            if (historyBox.style.display !== 'none') renderHistory();
+        }
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem("history") || "[]");
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="empty">ไม่มีประวัติ</div>';
+                return;
+            }
+            historyList.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <div class="meta">${item.from.toUpperCase()} → ${item.to.toUpperCase()} (${item.date})</div>
+                    <div><strong>Q:</strong> ${item.text}</div>
+                    <div style="color: #d4af37;"><strong>A:</strong> ${item.result}</div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('toggle-history').onclick = () => {
+            const isHidden = historyBox.style.display === 'none';
+            historyBox.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) renderHistory();
+        };
+
+        document.getElementById('clear-history').onclick = () => {
+            localStorage.removeItem("history");
+            renderHistory();
+            show('✓ ล้างประวัติเรียบร้อย');
+        };
+
+        // Service Worker for Offline Mode
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js').catch(console.error);
+            });
+        }
+    </script>
+<script src="app.js"></script>
+</body>
+</html>

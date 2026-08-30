@@ -1,0 +1,54 @@
+/* === Auto-Generated Theme: Midnight Slate (Dark Mode) === */
+:root {
+  --primary: #38bdf8;
+  --primary-hover: #0ea5e9;
+  --bg-color: #0f172a;
+  --surface-color: #1e293b;
+  --text-color: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --accent-color: #818cf8;
+  --border-radius: 16px;
+  --font-family: 'Prompt', 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Card & Surface Styling */
+.card, .container, .box, [class*="card"], [class*="panel"] {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+}
+
+/* Buttons Styling */
+button, .btn, [class*="btn"], input[type="button"], input[type="submit"] {
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--border-radius);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover, .btn:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Inputs & Form Controls */
+input, select, textarea {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: calc(var(--border-radius) / 1.5);
+  font-family: inherit;
+}
